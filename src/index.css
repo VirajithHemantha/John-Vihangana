@@ -8,30 +8,30 @@
   --font-montserrat: "Montserrat", sans-serif;
   --font-playball: "Playball", cursive;
 
-  --color-sage: #86efac;
+  --color-sage: #7291b7;
   --color-paper: #FFFFFF;
 
-  --color-theme-50: #f0fdf4;
-  --color-theme-100: #dcfce7;
-  --color-theme-200: #bbf7d0;
-  --color-theme-300: #86efac;
-  --color-theme-400: #4ade80;
-  --color-theme-500: #22c55e;
-  --color-theme-600: #16a34a;
-  --color-theme-700: #15803d;
-  --color-theme-800: #166534;
-  --color-theme-900: #14532d;
+  --color-theme-50: #f4f7f9;
+  --color-theme-100: #e2eaf1;
+  --color-theme-200: #c9d8e5;
+  --color-theme-300: #a5c0d6;
+  --color-theme-400: #7b9fc1;
+  --color-theme-500: #7291b7;
+  --color-theme-600: #557194;
+  --color-theme-700: #465c7a;
+  --color-theme-800: #3b4e65;
+  --color-theme-900: #334255;
 }
 
 .silver-border {
-  border: 2px solid #86efac;
-  box-shadow: 
+  border: 2px solid #a5c0d6;
+  box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.4),
-    inset 0 0 10px rgba(134, 239, 172, 0.3);
+    inset 0 0 10px rgba(165, 192, 214, 0.3);
 }
 
 .silver-text {
-  background: linear-gradient(135deg, #4ade80 0%, #dcfce7 50%, #4ade80 100%);
+  background: linear-gradient(135deg, #7b9fc1 0%, #e2eaf1 50%, #7b9fc1 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: bold;
@@ -43,7 +43,8 @@
   font-family: var(--font-montserrat);
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   overflow: hidden;
