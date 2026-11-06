@@ -17,7 +17,7 @@ export default function Admin() {
 
   const generateMessage = (link: string) => {
     const greeting = prefix.toLowerCase() === 'dear' ? `Dear ${guestName}` : `Dear ${prefix} ${guestName}`;
-    return `${greeting} ❤️\n\nWith joyful hearts, we warmly invite you to celebrate one of the most special days of our lives as we begin our journey together.\n\n📅 Date: April 08, 2027 (Thursday)\n⏰ Time: 08:30 AM Onwards\n📍 Venue: St. Mary's Church, Bambalapitiya\n\nPlease view our wedding invitation and all the event details through the link below 🌐:\n\n${link}\n\nYour presence would truly mean the world to us, and we would be honored to celebrate this beautiful moment together.\n\nWith love,\n❤️ John & Vihangana`;
+    return `${greeting} ❤️\n\nWith immense joy, we invite you to join us as we embark on the beautiful journey of marriage. Your presence is the greatest gift we could receive on this memorable day. We invite you to witness the celebration of our love story.\n\n📅 Date: April 08, 2027 (Thursday)\n⏰ Time: 08:30 AM Onwards\n📍 Venue: St. Mary's Church, Bambalapitiya\n\nPlease view our wedding invitation and all the event details through the link below 🌐:\n\n${link}\n\nYour presence would truly mean the world to us, and we would be honored to celebrate this beautiful moment together.\n\nWith love,\n❤️ John & Vihangana`;
   };
 
   const copyToClipboard = (text: string) => {
