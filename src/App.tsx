@@ -106,20 +106,22 @@ function FloatingPetals({ disabled = false, vibrant = false }: { disabled?: bool
       return;
     }
 
-    // Only a few flakes on screen at a time
+    // Soft blue tones for the falling flowers and petals
+    const blues = ["#6F95D8", "#4A74C0", "#9DB8E8", "#7FA3E0"];
+
+    // Only a few on screen at a time
     const flakeCount = isMobile ? 4 : 5;
     const newPetals = Array.from({ length: flakeCount }).map((_, i) => ({
       id: i,
-      // Spread evenly across the width so the few flakes don't bunch together
+      // Spread evenly across the width so they don't bunch together
       x: ((i + 0.2 + Math.random() * 0.6) / flakeCount) * 100,
-      // Mix of small and larger flakes for depth
-      size: Math.random() * 14 + (isMobile ? 10 : 12),
+      // Even ids are small five-petal blossoms, odd ids are single petals
+      size: i % 2 === 0 ? Math.random() * 6 + (isMobile ? 14 : 16) : Math.random() * 4 + (isMobile ? 10 : 12),
       rotation: Math.random() * 360,
       duration: Math.random() * 8 + 12,
-      // Spread start points across the cycle so snow is already falling on load
+      // Spread start points across the cycle so they're already falling on load
       delay: Math.random() * 20,
-      // Which of the six snowflake images (flake1.webp ... flake6.webp) to use
-      color: `/flake${(i % 6) + 1}.webp`,
+      color: blues[i % blues.length],
       drift: Math.random() * 6 - 3,
     }));
 
@@ -152,15 +154,25 @@ function FloatingPetals({ disabled = false, vibrant = false }: { disabled?: bool
             animation: `snow-fall ${isLowPowerMode ? flake.duration * 1.15 : flake.duration}s ease-in-out ${-flake.delay}s infinite`,
           }}
         >
-          <img
-            src={flake.color}
-            alt=""
-            width={flake.size}
-            height={flake.size}
-            draggable={false}
-            className="block select-none"
-            style={{ width: flake.size, height: flake.size, opacity: flake.size > 20 ? 0.85 : 0.95 }}
-          />
+          {flake.id % 2 === 0 ? (
+            /* Small five-petal blossom with a gold centre */
+            <svg width={flake.size} height={flake.size} viewBox="-20 -20 40 40" style={{ filter: "drop-shadow(0 1px 2px rgba(30,50,88,0.25))" }}>
+              {[0, 72, 144, 216, 288].map((angle) => (
+                <ellipse key={angle} cx="0" cy="-9" rx="6.5" ry="9.5" fill={flake.color} opacity="0.9" transform={`rotate(${angle})`} />
+              ))}
+              <circle r="4" fill="#D9B45A" />
+              <circle r="1.8" fill="#F3E3B5" />
+            </svg>
+          ) : (
+            /* Single soft petal: rounded top tapering to a narrow base */
+            <svg width={flake.size} height={flake.size * 1.15} viewBox="0 0 40 46" style={{ filter: "drop-shadow(0 1px 2px rgba(30,50,88,0.25))" }}>
+              <path
+                d="M20 45 C 11 40, 4 31, 3 21 C 2 11, 9 3, 20 2 C 31 3, 38 11, 37 21 C 36 31, 29 40, 20 45 Z"
+                fill={flake.color}
+                opacity="0.85"
+              />
+            </svg>
+          )}
         </div>
       ))}
     </div>
@@ -267,6 +279,54 @@ function downloadIcs() {
   a.download = "john-vihangana-wedding.ics";
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/**
+ * Floral frame used as a soft watermark inside one section.
+ * One copy of the frame's flower border sits at the top of each side and a flipped copy at the
+ * bottom. Nothing repeats, and every edge fades out, so there are no visible seams or boxes.
+ */
+function SectionWatermark() {
+  // Fade towards the page centre and towards the middle of the section
+  const fade = (towardsRight: boolean): React.CSSProperties => {
+    const mask = `linear-gradient(to bottom, black 55%, transparent 100%), linear-gradient(to ${towardsRight ? "right" : "left"}, black 45%, transparent 100%)`;
+    return {
+      WebkitMaskImage: mask,
+      maskImage: mask,
+      WebkitMaskComposite: "source-in",
+      maskComposite: "intersect",
+    };
+  };
+  const piece =
+    "pointer-events-none absolute z-0 opacity-50 mix-blend-multiply w-[95px] md:w-[150px] h-[420px] md:h-[620px] bg-[url(/floral-frame.webp)] bg-no-repeat bg-[length:210px_auto] md:bg-[length:310px_auto]";
+  return (
+    <>
+      <div aria-hidden="true" className={`${piece} top-0 left-0 bg-left-top`} style={fade(true)} />
+      <div aria-hidden="true" className={`${piece} top-0 right-0 bg-right-top`} style={fade(false)} />
+      <div aria-hidden="true" className={`${piece} bottom-0 left-0 bg-left-top -scale-y-100`} style={fade(true)} />
+      <div aria-hidden="true" className={`${piece} bottom-0 right-0 bg-right-top -scale-y-100`} style={fade(false)} />
+    </>
+  );
+}
+
+/** Watercolor floral corner decoration. The source image has its flowers in the top-right corner. */
+function FloralCorner({ corner, className = "" }: { corner: "tl" | "tr" | "bl" | "br"; className?: string }) {
+  const placement = {
+    tr: "top-0 right-0",
+    tl: "top-0 left-0 -scale-x-100",
+    br: "bottom-0 right-0 -scale-y-100",
+    bl: "bottom-0 left-0 rotate-180",
+  }[corner];
+  return (
+    <img
+      src="/floral-corner.webp"
+      alt=""
+      aria-hidden="true"
+      loading="lazy"
+      decoding="async"
+      className={`pointer-events-none select-none absolute z-0 w-[170px] sm:w-[240px] md:w-[360px] h-auto ${placement} ${className}`}
+    />
+  );
 }
 
 /**
@@ -866,7 +926,21 @@ export default function WeddingInvitation() {
 
 
             {/* Wedding Details Section */}
-            <section id="details" className="scroll-mt-20 cv-auto py-24 md:py-32 w-full flex flex-col items-center px-4 relative bg-gradient-to-b from-white via-theme-50 to-gold-50">
+            <section id="details" className="scroll-mt-20 cv-auto py-24 md:py-32 w-full flex flex-col items-center px-4 relative overflow-hidden bg-gradient-to-b from-white via-theme-50 to-gold-50">
+              {/* Floral border background: copies stacked down the section, every other one flipped
+                  so the edges meet as mirror images with no visible join */}
+              <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 flex flex-col overflow-hidden opacity-30 mix-blend-multiply">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <img
+                    key={i}
+                    src="/details-floral-bg.webp"
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    className={`block w-full max-w-none shrink-0 h-auto select-none ${i > 0 ? "-mt-[4px]" : ""} ${i % 2 === 1 ? "-scale-y-100" : ""}`}
+                  />
+                ))}
+              </div>
               <div className="section-floral-overlay absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden z-0">
               </div>
 
@@ -957,10 +1031,11 @@ export default function WeddingInvitation() {
                     initial={{ opacity: 0, x: -30, y: 20 }}
                     whileInView={{ opacity: 1, x: 0, y: 0 }}
                     viewport={{ once: true }}
-                    className="relative bg-white w-full max-w-[320px] p-6 md:p-10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] border border-theme-100/50 rounded-tl-[100px] rounded-br-[100px] md:rounded-tl-[130px] md:rounded-br-[130px] overflow-hidden group flex flex-col justify-center text-center items-center"
+                    className="relative bg-gradient-to-b from-white via-white to-gold-50 w-full max-w-[320px] px-6 pb-8 pt-12 md:px-10 md:pb-10 md:pt-16 shadow-[0_30px_60px_-20px_rgba(30,50,88,0.25)] border border-gold-200 rounded-t-[999px] rounded-b-[28px] overflow-hidden group flex flex-col justify-center text-center items-center"
                   >
-                    <div className="absolute inset-2 border-[1.5px] border-theme-300/70 rounded-tl-[90px] rounded-br-[90px] md:rounded-tl-[120px] md:rounded-br-[120px] pointer-events-none shadow-[inset_0_0_15px_rgba(192,192,192,0.1)]" />
+                    <div className="absolute inset-2 border-[1.5px] border-gold-300/80 rounded-t-[999px] rounded-b-[22px] pointer-events-none shadow-[inset_0_0_15px_rgba(217,180,90,0.12)]" />
                     <div className="absolute inset-0 opacity-[0.02] paper-grain pointer-events-none" />
+                    <img src="/arch-floral.webp" alt="" aria-hidden="true" loading="lazy" decoding="async" className="pointer-events-none select-none absolute inset-[9px] w-[calc(100%-18px)] h-[calc(100%-18px)] object-fill opacity-50" />
                     <div className="relative z-10 flex flex-col items-center text-center">
                       <div className="relative mb-8 group-hover:-translate-y-2 transition-transform duration-700">
                         <div className="absolute -inset-3 bg-gradient-to-tr from-theme-200 to-theme-100 rounded-t-full rounded-b-3xl blur-md opacity-0 group-hover:opacity-60 transition-opacity duration-700" />
@@ -978,6 +1053,7 @@ export default function WeddingInvitation() {
                         <p className="text-[11px] md:text-xs font-cinzel text-stone-600 tracking-wide leading-relaxed">{t.brideFather}<br />{t.and} {t.brideMother}</p>
                       </div>
                       <h3 className="text-[22px] md:text-3xl font-playball script-gradient group-hover:scale-105 transition-transform duration-700 pt-5 drop-shadow-sm leading-tight">{t.brideFull}</h3>
+                      <div className="flex items-center gap-2 mt-4 opacity-80"><span className="h-px w-8 bg-gold-300" /><span className="w-1.5 h-1.5 rotate-45 bg-gold-400" /><span className="h-px w-8 bg-gold-300" /></div>
                     </div>
                   </motion.div>
 
@@ -1002,10 +1078,11 @@ export default function WeddingInvitation() {
                     whileInView={{ opacity: 1, x: 0, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.1 }}
-                    className="relative bg-white w-full max-w-[320px] p-6 md:p-10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] border border-theme-100/50 rounded-tr-[100px] rounded-bl-[100px] md:rounded-tr-[130px] md:rounded-bl-[130px] overflow-hidden group flex flex-col justify-center text-center items-center md:mt-24"
+                    className="relative bg-gradient-to-b from-white via-white to-gold-50 w-full max-w-[320px] px-6 pb-8 pt-12 md:px-10 md:pb-10 md:pt-16 shadow-[0_30px_60px_-20px_rgba(30,50,88,0.25)] border border-gold-200 rounded-t-[999px] rounded-b-[28px] overflow-hidden group flex flex-col justify-center text-center items-center md:mt-24"
                   >
-                    <div className="absolute inset-2 border-[1.5px] border-theme-300/70 rounded-tr-[90px] rounded-bl-[90px] md:rounded-tr-[120px] md:rounded-bl-[120px] pointer-events-none shadow-[inset_0_0_15px_rgba(192,192,192,0.1)]" />
+                    <div className="absolute inset-2 border-[1.5px] border-gold-300/80 rounded-t-[999px] rounded-b-[22px] pointer-events-none shadow-[inset_0_0_15px_rgba(217,180,90,0.12)]" />
                     <div className="absolute inset-0 opacity-[0.02] paper-grain pointer-events-none" />
+                    <img src="/arch-floral.webp" alt="" aria-hidden="true" loading="lazy" decoding="async" className="pointer-events-none select-none absolute inset-[9px] w-[calc(100%-18px)] h-[calc(100%-18px)] object-fill opacity-50" />
                     <div className="relative z-10 flex flex-col items-center text-center">
                       <div className="relative mb-8 group-hover:-translate-y-2 transition-transform duration-700">
                         <div className="absolute -inset-3 bg-gradient-to-tr from-theme-200 to-theme-100 rounded-t-full rounded-b-3xl blur-md opacity-0 group-hover:opacity-60 transition-opacity duration-700" />
@@ -1023,6 +1100,7 @@ export default function WeddingInvitation() {
                         <p className="text-[11px] md:text-xs font-cinzel text-stone-600 tracking-wide leading-relaxed">{t.late} {t.groomFather}<br />{t.and} {t.groomMother}</p>
                       </div>
                       <h3 className="text-[25px] md:text-3xl font-playball script-gradient group-hover:scale-105 transition-transform duration-700 pt-5 drop-shadow-sm leading-tight">{t.groomFull}</h3>
+                      <div className="flex items-center gap-2 mt-4 opacity-80"><span className="h-px w-8 bg-gold-300" /><span className="w-1.5 h-1.5 rotate-45 bg-gold-400" /><span className="h-px w-8 bg-gold-300" /></div>
                     </div>
                   </motion.div>
                 </div>
@@ -1069,6 +1147,7 @@ export default function WeddingInvitation() {
 
             {/* Countdown Section */}
             <section className="cv-auto py-24 md:py-36 bg-gradient-to-br from-theme-100 via-white to-gold-100 relative border-y border-gold-200/60 flex flex-col items-center overflow-hidden">
+              <FloralCorner corner="tl" className="opacity-30" />
               {/* Premium Background Elements */}
               <div className="absolute inset-0 opacity-[0.03] paper-grain pointer-events-none" />
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[800px] aspect-square bg-theme-100 blur-[120px] rounded-full opacity-30 pointer-events-none" />
@@ -1111,6 +1190,7 @@ export default function WeddingInvitation() {
 
             {/* Venue Location Section */}
             <section id="venue" className="scroll-mt-20 cv-auto py-24 md:py-36 bg-gradient-to-b from-gold-50 via-white to-theme-50 relative overflow-hidden">
+              <SectionWatermark />
               {/* Decorative Background */}
               <div className="absolute inset-0 opacity-5 paper-grain pointer-events-none" />
               <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-theme-200 blur-[150px] rounded-full opacity-20 pointer-events-none" />
@@ -1230,6 +1310,7 @@ export default function WeddingInvitation() {
 
             {/* Tea Table Section */}
             <section className="cv-auto py-20 md:py-32 bg-gradient-to-br from-theme-100 via-gold-50 to-theme-50 relative overflow-hidden border-y border-gold-200/60">
+              <FloralCorner corner="tr" className="opacity-30" />
               <div className="absolute inset-0 opacity-[0.03] paper-grain pointer-events-none" />
               <div className="container mx-auto px-6 max-w-3xl relative z-10">
                 <motion.div
@@ -1380,6 +1461,7 @@ export default function WeddingInvitation() {
               <div className="absolute inset-0 opacity-[0.03] paper-grain pointer-events-none" />
 
               <section className="cv-auto py-24 md:py-36 relative flex flex-col items-center overflow-hidden">
+                <SectionWatermark />
 
                 <div className="container mx-auto px-4 max-w-4xl text-center relative z-10 w-full">
                   <motion.div
